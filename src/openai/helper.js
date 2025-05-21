@@ -23,10 +23,21 @@ async function generateSQL(question) {
     ", "
   )} | Columns: ${data.columns.join(", ")}`;
 
-  const prompt = `You are a MySQL expert. Given a natural language question, write a syntactically correct SQL query. Only return the SQL code and nothing else.
+const prompt = `You are a MySQL expert. Given a natural language question, write a syntactically correct SQL query. Only return the SQL code and nothing else.
+
+Use the following database structure:
+Tables: ${data.tables.join(", ")}
+Columns: ${data.columns.join(", ")}
+
+IMPORTANT:
+- When the question is about a product name, or asks for products similar to a name or keyword (e.g., "laptop", "keyboard", etc.), you MUST use the SQL LIKE operator with wildcards.
+- NEVER use = for Product_Name. Always use: WHERE Product_Name LIKE '%<keyword>%'
+- Do NOT match exact values. Always do partial matching with LIKE and wildcards.
+
 Question: ${question}
-This is the database structure: ${tableInfo}
-Write the correct SQL command:`;
+Write ONLY the correct SQL query with LIKE if product names are mentioned:`;
+
+
 
   console.log("Prompt:", prompt);
 

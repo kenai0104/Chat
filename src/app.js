@@ -6,7 +6,6 @@ import routes from "./routes/askRoutes.js";
 import db from "./config/db.js";
 
 dotenv.config();
-
 const app = express();
 
 app.use(cors());
