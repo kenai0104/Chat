@@ -4,7 +4,7 @@ dotenv.config();
 
 const together = new Together();
 
-export async function generateSQL(question) {
+async function generateSQL(question) {
   const data = {
     tables: ["products"],
     columns: [
@@ -19,43 +19,37 @@ export async function generateSQL(question) {
     ],
   };
 
-  const prompt = `You are a MySQL expert. Given a natural language question, write a syntactically correct SQL query. Only return the SQL code and nothing else.
+  const table = data.tables.join(", ");
+  const columns = data.columns.join(", ");
 
-Use the following database structure:
-Tables: ${data.tables.join(", ")}
-Columns: ${data.columns.join(", ")}
+const prompt = `You are an expert in SQL. Based on the user's natural language question and the provided database schema, generate the most relevant SQL query. 
+Your job is to understand the user's intent, map it to the correct columns, and write a clean and efficient SQL query.
 
-IMPORTANT:
-- When the question is about a product name, or asks for products similar to a name or keyword (e.g., "laptop", "keyboard", etc.), you MUST use the SQL LIKE operator with wildcards.
-- NEVER use = for Product_Name. Always use: WHERE Product_Name LIKE '%<keyword>%'
-- Do NOT match exact values. Always do partial matching with LIKE and wildcards.
+Schema:
+Table: ${table}
+Columns: ${columns}
 
-Question: ${question}
-Write ONLY the correct SQL query with LIKE if product names are mentioned:`;
+Guidelines:
+- Do NOT use SELECT * unless the user explicitly says "all details", "everything", or "all data".
+- If the question refers to specific data, include only that column in the SELECT clause (e.g., use Product_Name when asking about products).
+- If the question asks for a list of unique entities like:
+  • "suppliers" → return DISTINCT Supplier_Name  
+  • "categories" → return DISTINCT Category  
+  • "warehouses" → return DISTINCT Warehouse  
+- If the input includes a **location, keyword, or descriptive term** (e.g., "central", "wireless", "north", "printer"), then:
+  → ALWAYS use LIKE '%keyword%' on the matching text column (such as Warehouse, Product_Name, Category, or Supplier_Name).
+  → NEVER use '=' for partial keywords or vague references. Only use '=' if the user provides an exact value like "Warehouse = 'WH-East'".
+- Use '<', '>', or '=' only for numeric comparisons or fully specific values.
+- Do not include explanations, assumptions, or comments — return only valid, clean MySQL syntax.
 
-  const response = await together.chat.completions.create({
-    model: "mistralai/Mistral-7B-Instruct-v0.1",
-    messages: [{ role: "user", content: prompt }],
-  });
+User Question: ${question}`;
 
-  return response.choices[0].message.content.trim();
-}
 
-export async function generateAnswerFromResult(question, sqlResult) {
-  const prompt = `
-You are a concise assistant. Based on the user's question and the SQL result, provide a **brief, direct answer**.
 
-Keep it short and to the point. Do not include any additional phrases like "Based on the SQL query" or "Is there anything else I can help you with?"
 
-Question:
-${question}
 
-SQL Result (as JSON):
-${JSON.stringify(sqlResult, null, 2)}
 
-Answer (keep it very short and clear):
-`;
-
+  console.log("Prompt:", prompt);
 
   const response = await together.chat.completions.create({
     model: "mistralai/Mistral-7B-Instruct-v0.1",
@@ -64,3 +58,5 @@ Answer (keep it very short and clear):
 
   return response.choices[0].message.content.trim();
 }
+
+export default generateSQL;
