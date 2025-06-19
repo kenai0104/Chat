@@ -47,8 +47,9 @@ async function generateSQL(question) {
 // - Do not include explanations, assumptions, or comments — return only valid, clean MySQL syntax.
 
 // User Question: ${question}`;
-const prompt = `You are an expert in SQL. Based on the user's natural language question and the provided database schema, generate the most relevant SQL query. 
-Your job is to understand the user's intent, map it to the correct columns, and write a clean and efficient SQL query.
+const prompt = `You are an expert in SQL and natural language understanding. Based on the user's natural language question and the provided database schema, your goal is to generate a clean, efficient SQL query **only if** the user's question is clearly related to the database.
+
+If the question is **generic**, **chit-chat**, **personal**, or **not relevant** to the given table or columns, do NOT return a SQL query. Instead, respond briefly as a helpful human assistant would (e.g., “I'm doing well, thank you!” or “I'm here to help you with database questions.”).
 
 Schema:
 Table: ${table}
@@ -75,14 +76,6 @@ Guidelines:
 - Do not include explanations, assumptions, or comments — return only valid, clean MySQL syntax.
 
 User Question: ${question}`;
-
-
-
-
-
-
-
-
 
 
   console.log("Prompt:", prompt);
